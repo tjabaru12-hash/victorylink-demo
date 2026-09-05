@@ -1,4 +1,17 @@
-<title>VictoryLink Prototype</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VictoryLink</title>
+<meta name="description" content="Privacy-safe field ops &amp; GOTV app prototype for VictoryLink.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#146334">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VictoryLink">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
   :root{
@@ -177,7 +190,33 @@
   ::-webkit-scrollbar-thumb{background:#D9DFD2;border-radius:3px;}
 </style>
 
+<style>
+  .install-strip{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    background:var(--green-100,#E1F0E4);border:1px solid var(--green-600,#1B7A40);color:var(--ink,#15201A);
+    border-radius:10px;padding:10px 14px;font-size:12.5px;margin:0 0 18px;
+  }
+  .install-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+  .install-btn{background:var(--green-600,#1B7A40);color:#fff;border:none;border-radius:7px;
+    padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:var(--font-body);
+    touch-action:manipulation;}
+  .install-dismiss{background:none;border:none;color:var(--ink-faint,#7C8C7F);font-size:14px;cursor:pointer;
+    padding:6px 8px;touch-action:manipulation;}
+</style>
+
+</head>
+<body>
+
 <div class="page">
+
+<div class="install-strip" id="installStrip" hidden>
+  <span id="installMsg">Install this app on your phone for one-tap access.</span>
+  <div class="install-actions">
+    <button id="installBtn" class="install-btn" hidden>Install App</button>
+    <button id="installDismiss" class="install-dismiss" aria-label="Dismiss">✕</button>
+  </div>
+</div>
+
   <div class="top">
     <div>
       <h1>Victory<em>Link</em> — Interactive Prototype</h1>
@@ -655,3 +694,63 @@
   render();
 })();
 </script>
+
+<script>
+(function(){
+  "use strict";
+  var strip = document.getElementById('installStrip');
+  var msg = document.getElementById('installMsg');
+  var installBtn = document.getElementById('installBtn');
+  var dismissBtn = document.getElementById('installDismiss');
+  var deferredPrompt = null;
+
+  function isStandalone(){
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+  function dismissed(){
+    try { return sessionStorage.getItem('vl_install_dismissed') === '1'; } catch(e){ return false; }
+  }
+  function setDismissed(){
+    try { sessionStorage.setItem('vl_install_dismissed', '1'); } catch(e){}
+  }
+
+  if(!isStandalone() && !dismissed()){
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    if(isIOS){
+      msg.textContent = 'Install this app: tap the Share icon, then "Add to Home Screen".';
+      strip.hidden = false;
+    }
+    // Android/Chrome will reveal the strip + button via beforeinstallprompt below.
+  }
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    if(!dismissed() && !isStandalone()){
+      msg.textContent = 'Install this app on your phone for one-tap access.';
+      installBtn.hidden = false;
+      strip.hidden = false;
+    }
+  });
+
+  installBtn.addEventListener('click', function(){
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(function(){ deferredPrompt = null; strip.hidden = true; });
+  });
+
+  dismissBtn.addEventListener('click', function(){
+    strip.hidden = true;
+    setDismissed();
+  });
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('service-worker.js').catch(function(){ /* offline install still fine without SW */ });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
