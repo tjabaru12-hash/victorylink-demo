@@ -1,0 +1,646 @@
+<title>VictoryLink</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --paper:#F5F6F0;
+    --surface:#FFFFFF;
+    --surface-2:#EAF1EA;
+    --ink:#15201A;
+    --ink-soft:#48584C;
+    --ink-faint:#7C8C7F;
+    --line:#D9DFD2;
+    --line-strong:#BCC7B2;
+    --green-900:#0B3D22;
+    --green-700:#146334;
+    --green-600:#1B7A40;
+    --green-500:#25914E;
+    --green-100:#E1F0E4;
+    --amber-600:#A8791E;
+    --amber-100:#F7EFDC;
+    --red-600:#A23B34;
+    --red-100:#F7E5E2;
+    --shadow: 0 1px 2px rgba(11,61,34,0.06), 0 8px 24px -12px rgba(11,61,34,0.18);
+    --font-display:'Archivo', 'Arial Narrow', sans-serif;
+    --font-body:'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0D1712;
+      --surface:#142019;
+      --surface-2:#182B20;
+      --ink:#EAEFE7;
+      --ink-soft:#AFC0B2;
+      --ink-faint:#748578;
+      --line:#26362B;
+      --line-strong:#344A38;
+      --green-900:#EAF6EE;
+      --green-700:#63C889;
+      --green-600:#49BC77;
+      --green-500:#3DAE6C;
+      --green-100:#1B3625;
+      --amber-600:#E0AC57;
+      --amber-100:#332815;
+      --red-600:#E08079;
+      --red-100:#3A211F;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0D1712;
+    --surface:#142019;
+    --surface-2:#182B20;
+    --ink:#EAEFE7;
+    --ink-soft:#AFC0B2;
+    --ink-faint:#748578;
+    --line:#26362B;
+    --line-strong:#344A38;
+    --green-900:#EAF6EE;
+    --green-700:#63C889;
+    --green-600:#49BC77;
+    --green-500:#3DAE6C;
+    --green-100:#1B3625;
+    --amber-600:#E0AC57;
+    --amber-100:#332815;
+    --red-600:#E08079;
+    --red-100:#3A211F;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.45;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 60px;}
+
+  h1,h2,h3{font-family:var(--font-display);text-wrap:balance;letter-spacing:-0.01em;color:var(--ink);}
+  .num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+  .eyebrow{
+    font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.14em;
+    text-transform:uppercase;color:var(--green-600);
+  }
+
+  /* ---------- Masthead ---------- */
+  .masthead{
+    display:flex;align-items:center;gap:20px;padding-bottom:22px;border-bottom:3px solid var(--green-700);
+    margin-bottom:22px;
+  }
+  .badge{
+    flex:0 0 auto;width:64px;height:64px;border-radius:50%;
+    background:linear-gradient(160deg,var(--green-600),var(--green-900));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--shadow);position:relative;
+  }
+  .badge span{font-family:var(--font-display);font-weight:900;color:#fff;font-size:20px;letter-spacing:-0.02em;}
+  .badge::after{
+    content:"";position:absolute;inset:5px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);
+  }
+  .brand-block{flex:1 1 auto;min-width:0;}
+  .brand-title{font-size:clamp(28px,4vw,40px);font-weight:900;line-height:1;margin:0;}
+  .brand-title em{font-style:normal;color:var(--green-600);}
+  .brand-tag{font-size:14px;color:var(--ink-soft);margin-top:6px;font-weight:600;}
+  .tagline{
+    font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink-faint);
+    letter-spacing:0.08em;text-transform:uppercase;margin-top:8px;
+  }
+  .version-pill{
+    flex:0 0 auto;align-self:flex-start;background:var(--green-100);color:var(--green-700);
+    font-family:var(--font-mono);font-size:11px;font-weight:600;padding:6px 12px;border-radius:100px;
+    border:1px solid var(--line-strong);white-space:nowrap;
+  }
+
+  /* ---------- Stat strip ---------- */
+  .statstrip{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:34px;box-shadow:var(--shadow);
+  }
+  .statcell{background:var(--surface);padding:14px 10px;text-align:center;}
+  .statcell b{display:block;font-family:var(--font-mono);font-size:19px;font-weight:600;color:var(--green-700);}
+  .statcell small{display:block;font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;}
+  .statcell.election b{color:var(--red-600);font-size:14px;}
+
+  /* ---------- Section heading ---------- */
+  .section-head{display:flex;align-items:baseline;gap:12px;margin:44px 0 18px;}
+  .section-head h2{font-size:20px;font-weight:800;margin:0;}
+  .section-head .rule{flex:1;height:1px;background:var(--line-strong);}
+
+  /* ---------- Phone filmstrip ---------- */
+  .filmstrip{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
+  @media (max-width:900px){.filmstrip{grid-template-columns:repeat(3,1fr);} }
+  .phone-slot{display:flex;flex-direction:column;gap:10px;}
+  .phone-slot .step-label{
+    font-family:var(--font-mono);font-size:10.5px;color:var(--ink-faint);text-align:center;
+    text-transform:uppercase;letter-spacing:0.06em;
+  }
+  .phone-slot .step-label b{color:var(--green-600);font-weight:600;}
+  .phone{
+    background:var(--surface);border:1px solid var(--line-strong);border-radius:16px;
+    box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;min-height:300px;
+  }
+  .phone-status{
+    display:flex;justify-content:space-between;padding:6px 10px 2px;font-family:var(--font-mono);
+    font-size:9px;color:var(--ink-faint);
+  }
+  .phone-bar{
+    background:var(--green-700);color:#fff;padding:8px 10px;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .phone-body{padding:10px;flex:1;display:flex;flex-direction:column;gap:8px;font-size:10.5px;}
+  .mini-card{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:7px 8px;}
+  .mini-label{font-size:8.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-faint);font-weight:600;}
+  .mini-value{font-family:var(--font-mono);font-weight:600;color:var(--ink);font-size:12px;}
+  .chip-row{display:flex;gap:5px;flex-wrap:wrap;}
+  .chip{
+    font-size:8.5px;padding:3px 7px;border-radius:100px;border:1px solid var(--line-strong);
+    color:var(--ink-soft);font-weight:600;
+  }
+  .chip.on{background:var(--green-100);color:var(--green-700);border-color:transparent;}
+  .btn-mini{
+    background:var(--green-600);color:#fff;text-align:center;padding:7px;border-radius:7px;
+    font-size:10px;font-weight:700;margin-top:auto;
+  }
+  .field-mini{border:1px solid var(--line-strong);border-radius:6px;padding:6px 8px;color:var(--ink-faint);font-size:9.5px;}
+  .avatar-row{display:flex;align-items:center;gap:6px;}
+  .avatar{
+    width:18px;height:18px;border-radius:50%;background:var(--green-500);color:#fff;font-size:8px;
+    display:flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto;
+  }
+  .list-row{display:flex;align-items:center;gap:6px;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--line);}
+  .list-row:last-child{border-bottom:none;}
+  .list-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .checkbox{width:12px;height:12px;border-radius:3px;border:1.5px solid var(--line-strong);flex:0 0 auto;}
+  .checkbox.done{background:var(--green-600);border-color:var(--green-600);position:relative;}
+  .nav-mini{
+    display:flex;justify-content:space-around;padding:6px 4px;border-top:1px solid var(--line);
+    font-size:7.5px;color:var(--ink-faint);
+  }
+
+  /* ---------- Privacy banner ---------- */
+  .privacy-banner{
+    background:var(--surface);border:1.5px solid var(--green-600);border-radius:14px;padding:26px 28px;
+    box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .privacy-banner::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--green-600);
+  }
+  .privacy-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .privacy-head h2{font-size:19px;margin:0;}
+  .privacy-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 28px;}
+  @media (max-width:800px){.privacy-grid{grid-template-columns:1fr;}}
+  .privacy-item{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;}
+  .privacy-item .mark{
+    flex:0 0 auto;width:20px;height:20px;border-radius:50%;background:var(--green-100);color:var(--green-700);
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:1px;
+  }
+  .privacy-item b{display:block;color:var(--ink);}
+  .privacy-item span{color:var(--ink-soft);font-size:12.5px;}
+
+  /* ---------- Info grid ---------- */
+  .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media (max-width:860px){.info-grid{grid-template-columns:1fr;}}
+  .panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;
+    box-shadow:var(--shadow);
+  }
+  .panel h3{font-size:13px;font-weight:800;margin:0 0 12px;display:flex;align-items:center;gap:8px;
+    text-transform:uppercase;letter-spacing:0.04em;color:var(--green-700);}
+  .panel ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+  .panel li{font-size:12.5px;display:flex;gap:8px;align-items:flex-start;color:var(--ink-soft);}
+  .panel li b{color:var(--ink);font-weight:600;}
+  .panel li::before{content:"—";color:var(--green-600);flex:0 0 auto;}
+  .subhead{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:0.06em;color:var(--ink-faint);margin:14px 0 6px;}
+  .subhead:first-child{margin-top:0;}
+
+  /* ---------- Workflow ---------- */
+  .workflow{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:4px;}
+  .wf-step{
+    flex:1 1 0;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:14px 14px 14px 16px;position:relative;box-shadow:var(--shadow);
+  }
+  .wf-step + .wf-step{margin-left:22px;}
+  .wf-step + .wf-step::before{
+    content:"→";position:absolute;left:-19px;top:50%;transform:translateY(-50%);color:var(--green-600);
+    font-weight:700;font-size:15px;
+  }
+  .wf-num{font-family:var(--font-mono);color:var(--green-600);font-size:11px;font-weight:700;}
+  .wf-title{font-weight:700;font-size:13px;margin:4px 0 3px;}
+  .wf-desc{font-size:11.5px;color:var(--ink-soft);}
+
+  /* ---------- Situation room ---------- */
+  .sitroom{
+    background:var(--green-900);color:#EAF6EE;border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);
+  }
+  :root:not([data-theme="light"]) .sitroom{background:#0A1712;}
+  :root[data-theme="dark"] .sitroom{background:#0A1712;}
+  .sitroom-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .sitroom-head h2{color:#fff;margin:0;font-size:19px;}
+  .sitroom-head .live{
+    font-family:var(--font-mono);font-size:10.5px;color:#8FE0AC;display:flex;align-items:center;gap:6px;
+  }
+  .live::before{content:"";width:7px;height:7px;border-radius:50%;background:#4CD97B;display:inline-block;}
+  .sit-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:16px;}
+  @media (max-width:900px){.sit-grid{grid-template-columns:1fr;}}
+  .sit-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:14px 16px;}
+  .sit-card h4{font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:#9FC7AA;margin:0 0 10px;font-weight:700;}
+  .zone-row{display:flex;align-items:center;gap:10px;font-size:11.5px;padding:5px 0;}
+  .zone-name{width:118px;flex:0 0 auto;color:#D6EBDA;}
+  .zone-bar{flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,0.12);overflow:hidden;}
+  .zone-fill{height:100%;background:linear-gradient(90deg,#2E9C5C,#63C889);}
+  .zone-pct{font-family:var(--font-mono);width:34px;text-align:right;color:#EAF6EE;font-size:11px;}
+  .sit-stat-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dashed rgba(255,255,255,0.12);}
+  .sit-stat-row:last-child{border-bottom:none;}
+  .sit-stat-row b{font-family:var(--font-mono);color:#fff;}
+  .incident-row{display:flex;align-items:center;gap:8px;font-size:11.5px;padding:4px 0;}
+  .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+  .dot.critical{background:#E0645C;} .dot.high{background:#E0A25C;} .dot.med{background:#E0D25C;} .dot.low{background:#7FC98E;}
+  .incident-count{margin-left:auto;font-family:var(--font-mono);color:#fff;}
+  .leaderboard-row{display:flex;align-items:center;gap:8px;font-size:11.5px;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,0.1);}
+  .leaderboard-row:last-child{border-bottom:none;}
+  .rank{font-family:var(--font-mono);color:#8FE0AC;width:16px;}
+  .lb-name{flex:1;color:#EAF6EE;}
+  .lb-metric{font-family:var(--font-mono);color:#9FC7AA;font-size:10.5px;}
+  .thermo-wrap{margin-top:6px;}
+  .thermo{height:12px;border-radius:6px;background:rgba(255,255,255,0.12);overflow:hidden;}
+  .thermo-fill{height:100%;background:linear-gradient(90deg,#2E9C5C,#63C889);}
+  .thermo-caption{display:flex;justify-content:space-between;font-size:10.5px;color:#9FC7AA;margin-top:6px;}
+  .sample-tag{font-family:var(--font-mono);font-size:9px;color:#7C8C7F;text-transform:uppercase;letter-spacing:0.06em;margin-top:10px;}
+
+  /* ---------- Ratio calc ---------- */
+  .calc-row{display:flex;gap:16px;align-items:stretch;flex-wrap:wrap;}
+  .calc-eq{
+    flex:1 1 320px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;
+    box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;
+  }
+  .calc-part{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .calc-icon{
+    width:38px;height:38px;border-radius:50%;background:var(--green-100);color:var(--green-700);
+    display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:13px;
+  }
+  .calc-label{font-size:10px;color:var(--ink-faint);text-align:center;max-width:80px;}
+  .calc-sym{font-size:20px;color:var(--ink-faint);font-weight:300;}
+  .calc-result{
+    margin-left:auto;font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--green-700);
+    background:var(--green-100);padding:8px 14px;border-radius:8px;
+  }
+  .facts-grid{
+    flex:1 1 320px;display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);
+  }
+  .fact{background:var(--surface);padding:12px 14px;}
+  .fact b{display:block;font-family:var(--font-mono);font-size:17px;color:var(--green-700);}
+  .fact small{font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.04em;}
+
+  /* ---------- Footer ---------- */
+  .footer{
+    margin-top:50px;padding-top:20px;border-top:3px solid var(--green-700);
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+  }
+  .footer .tags{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);}
+  .footer .claim{font-size:12px;font-weight:700;color:var(--green-700);}
+</style>
+
+<div class="wrap">
+
+  <!-- MASTHEAD -->
+  <div class="masthead">
+    <div class="badge"><span>APC</span></div>
+    <div class="brand-block">
+      <h1 class="brand-title">Victory<em>Link</em></h1>
+      <div class="brand-tag">Field Ops. Connect. Mobilize. Win.</div>
+      <div class="tagline">Next Level Nigeria — GOTV Field Operations App</div>
+    </div>
+    <div class="version-pill">v2.0 · Privacy-Safe Demo Build</div>
+  </div>
+
+  <!-- STAT STRIP -->
+  <div class="statstrip">
+    <div class="statcell"><b class="num">176,974</b><small>Polling Units</small></div>
+    <div class="statcell"><b class="num">1</b><small>Supervisor / Unit</small></div>
+    <div class="statcell"><b class="num">10</b><small>Canvassers / Unit</small></div>
+    <div class="statcell"><b class="num">11</b><small>Field Staff / Unit</small></div>
+    <div class="statcell"><b class="num">1,769,740</b><small>Total Canvassers</small></div>
+    <div class="statcell"><b class="num">1,946,714</b><small>Total Field Staff</small></div>
+    <div class="statcell election"><b>Sat 16 Jan 2027</b><small>Election Day · 133 days out</small></div>
+  </div>
+
+  <!-- APP QUICK LOOK -->
+  <div class="section-head"><h2>App Quick Look — Six Core Screens</h2><div class="rule"></div></div>
+  <div class="filmstrip">
+
+    <!-- 1 LOGIN -->
+    <div class="phone-slot">
+      <div class="step-label"><b>01</b> Login</div>
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>●●● Wi-Fi</span></div>
+        <div class="phone-bar">Victory<span style="color:#B7E6C4">Link</span></div>
+        <div class="phone-body">
+          <div class="mini-label">Phone number</div>
+          <div class="field-mini">0803 123 4567</div>
+          <div class="mini-label">Password</div>
+          <div class="field-mini">••••••••</div>
+          <div class="chip-row"><span class="chip">Remember me</span></div>
+          <div class="btn-mini">Log In</div>
+          <div class="chip-row"><span class="chip on">Offline mode ready</span></div>
+        </div>
+        <div class="nav-mini"><span>Secure</span><span>Encrypted</span><span>Offline-first</span></div>
+      </div>
+    </div>
+
+    <!-- 2 DASHBOARD -->
+    <div class="phone-slot">
+      <div class="step-label"><b>02</b> Dashboard</div>
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>●●● Wi-Fi</span></div>
+        <div class="phone-bar">PU-01234-A <span style="font-weight:400;font-size:9px;">Bama, Borno</span></div>
+        <div class="phone-body">
+          <div class="mini-card">
+            <div class="mini-label">Status</div>
+            <div class="mini-value" style="color:var(--green-600);font-size:11px;">✓ Checked in — 07:15</div>
+          </div>
+          <div class="mini-label">Today's overview</div>
+          <div class="chip-row">
+            <span class="chip on">7 contacted</span><span class="chip on">4 canvassed</span><span class="chip">1 issue</span>
+          </div>
+          <div class="mini-label">Quick actions</div>
+          <div class="chip-row">
+            <span class="chip">Canvass voter</span><span class="chip">GOTV tracker</span><span class="chip">Team</span>
+          </div>
+        </div>
+        <div class="nav-mini"><span>Home</span><span>Voters</span><span>Sync</span><span>More</span></div>
+      </div>
+    </div>
+
+    <!-- 3 VOTER ENGAGEMENT -->
+    <div class="phone-slot">
+      <div class="step-label"><b>03</b> Voter Engagement</div>
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>●●● Wi-Fi</span></div>
+        <div class="phone-bar">Canvass Voter <span style="font-weight:400;font-size:9px;">1 · 2</span></div>
+        <div class="phone-body">
+          <div class="mini-label">Voter ID (PVC)</div>
+          <div class="field-mini">PVC••••••••1234 — Verified ✓</div>
+          <div class="mini-label">Name (auto-filled)</div>
+          <div class="field-mini">John Adewale</div>
+          <div class="mini-label">Canvass result</div>
+          <div class="chip-row">
+            <span class="chip on">Supportive</span><span class="chip">Undecided</span><span class="chip">Not home</span>
+          </div>
+          <div class="btn-mini">Save Canvass</div>
+        </div>
+        <div class="nav-mini"><span>No photo</span><span>No location</span></div>
+      </div>
+    </div>
+
+    <!-- 4 GOTV TRACKER -->
+    <div class="phone-slot">
+      <div class="step-label"><b>04</b> GOTV Tracker</div>
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>●●● Wi-Fi</span></div>
+        <div class="phone-bar">Election Day List <span style="font-weight:400;font-size:9px;">3 assigned</span></div>
+        <div class="phone-body">
+          <div class="list-row"><div class="checkbox done"></div><span class="list-name">John Adewale</span><span class="chip on">Voted*</span></div>
+          <div class="list-row"><div class="checkbox"></div><span class="list-name">Mary Samuel</span><span class="chip">Reminded</span></div>
+          <div class="list-row"><div class="checkbox"></div><span class="list-name">Ibrahim Musa</span><span class="chip">Needs ride</span></div>
+          <div class="mini-label" style="margin-top:2px;">*Self-reported by voter — no photo, no GPS</div>
+          <div class="btn-mini">Sync List</div>
+        </div>
+        <div class="nav-mini"><span>Aggregate only to HQ</span></div>
+      </div>
+    </div>
+
+    <!-- 5 TEAM -->
+    <div class="phone-slot">
+      <div class="step-label"><b>05</b> Team</div>
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>●●● Wi-Fi</span></div>
+        <div class="phone-bar">My Team <span style="font-weight:400;font-size:9px;">PU-01234-A</span></div>
+        <div class="phone-body">
+          <div class="mini-label">Supervisor</div>
+          <div class="avatar-row"><div class="avatar">BA</div><span>Bello Ahmed</span></div>
+          <div class="mini-label">Canvassers (10)</div>
+          <div class="list-row"><div class="avatar-row"><div class="avatar">JA</div><span class="list-name">John Adewale</span></div><span class="chip">7 contacts</span></div>
+          <div class="list-row"><div class="avatar-row"><div class="avatar">MS</div><span class="list-name">Mary Samuel</span></div><span class="chip">5 contacts</span></div>
+          <div class="list-row"><div class="avatar-row"><div class="avatar">GU</div><span class="list-name">Grace Usman</span></div><span class="chip">9 contacts</span></div>
+          <div class="mini-label">…and 7 more · View all</div>
+        </div>
+        <div class="nav-mini"><span>Home</span><span>Voters</span><span>Sync</span><span>More</span></div>
+      </div>
+    </div>
+
+    <!-- 6 REPORTS -->
+    <div class="phone-slot">
+      <div class="step-label"><b>06</b> Reports</div>
+      <div class="phone">
+        <div class="phone-status"><span>9:41</span><span>●●● Wi-Fi</span></div>
+        <div class="phone-bar">Reports</div>
+        <div class="phone-body">
+          <div class="list-row"><span class="list-name">Daily Summary</span><span class="chip">›</span></div>
+          <div class="list-row"><span class="list-name">Voter Engagement</span><span class="chip">›</span></div>
+          <div class="list-row"><span class="list-name">Canvass Report</span><span class="chip">›</span></div>
+          <div class="list-row"><span class="list-name">Issues &amp; Incidents</span><span class="chip">›</span></div>
+          <div class="list-row"><span class="list-name">Sync Status</span><span class="chip on">07:15</span></div>
+        </div>
+        <div class="nav-mini"><span>Home</span><span>Voters</span><span>Sync</span><span>More</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PRIVACY BANNER -->
+  <div class="section-head"><h2>What Changed &amp; Why</h2><div class="rule"></div></div>
+  <div class="privacy-banner">
+    <div class="privacy-head">
+      <h2>Voter Privacy &amp; Safeguards — built in, not bolted on</h2>
+    </div>
+    <div class="privacy-grid">
+      <div class="privacy-item"><div class="mark">✓</div><div><b>No voter photography, ever</b><span> — registration and election-day flows use verified ID lookup and canvass notes only. No image of any voter is captured at any point.</span></div></div>
+      <div class="privacy-item"><div class="mark">✓</div><div><b>No individual geolocation</b><span> — the app records which polling unit a canvasser is assigned to, never a GPS coordinate tied to a specific voter's movements.</span></div></div>
+      <div class="privacy-item"><div class="mark">✓</div><div><b>No pay-per-voter compensation</b><span> — field staff recognition is based on contact volume only; nothing in the app calculates or triggers a payout tied to an individual's turnout.</span></div></div>
+      <div class="privacy-item"><div class="mark">✓</div><div><b>Aggregate reporting to HQ</b><span> — the situation room sees polling-unit and zone-level rollups (e.g. "62% of assigned list contacted"), never a per-voter turnout record.</span></div></div>
+      <div class="privacy-item"><div class="mark">✓</div><div><b>Self-reported GOTV status</b><span> — "voted" flags on election day come from the voter's own word to the canvasser, the same way any door-knock or phone-bank GOTV program works — not from evidentiary capture.</span></div></div>
+      <div class="privacy-item"><div class="mark">✓</div><div><b>NDPR-aligned by design</b><span> — the data model was scoped down to what a field-ops and GOTV tool actually needs, removing the categories of data that carry the highest privacy and coercion risk.</span></div></div>
+    </div>
+  </div>
+
+  <!-- FEATURES / SPECS / DATA -->
+  <div class="section-head"><h2>Core Features, Specifications &amp; Data Model</h2><div class="rule"></div></div>
+  <div class="info-grid">
+    <div class="panel">
+      <h3>Core Features</h3>
+      <ul>
+        <li><b>1 Supervisor + 10 Canvassers</b> per polling unit</li>
+        <li><b>Verified voter list</b> lookup by polling unit</li>
+        <li><b>Voter engagement (pre-election)</b> canvass logging</li>
+        <li><b>GOTV Tracker</b> for election-day reminders &amp; follow-up</li>
+        <li><b>3-contact engagement target</b> per canvasser</li>
+        <li><b>Team management</b> &amp; real-time overview</li>
+        <li><b>Offline-first</b> — works without internet</li>
+        <li><b>Secure sync</b> &amp; encrypted backup</li>
+        <li><b>Reports, analytics &amp; dashboards</b></li>
+        <li><b>Incidents &amp; alerts</b></li>
+        <li><b>Role-based access &amp; permissions</b></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>App Specifications</h3>
+      <ul>
+        <li><b>Platform:</b> Android 8.0 and above</li>
+        <li><b>Devices:</b> 176,974 tablets</li>
+        <li><b>Connectivity:</b> 2G / 3G / 4G / Wi-Fi</li>
+        <li><b>Offline storage:</b> Encrypted SQLite</li>
+        <li><b>Sync:</b> Event-based, auto / manual</li>
+        <li><b>Auth:</b> PIN / password + device certificate</li>
+        <li><b>Security:</b> AES-256 encryption, TLS 1.3</li>
+        <li><b>Camera:</b> Optional — issue/incident evidence only</li>
+        <li><b>Languages:</b> English, Hausa, Yoruba, Igbo, Pidgin</li>
+        <li><b>App size:</b> ~40MB</li>
+        <li><b>Update mode:</b> Silent updates via MDM</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Data Capture Model</h3>
+      <div class="subhead">Pre-Election (Canvass)</div>
+      <ul>
+        <li>Voter ID (verified against roll)</li>
+        <li>Polling unit, date &amp; time</li>
+        <li>Canvass result &amp; notes</li>
+      </ul>
+      <div class="subhead">Election Day (GOTV Tracker)</div>
+      <ul>
+        <li>Self-reported voting status</li>
+        <li>Date &amp; time of update</li>
+        <li>Canvasser ID (for audit only)</li>
+      </ul>
+      <div class="subhead">Explicitly Not Captured</div>
+      <ul>
+        <li>Voter photographs, at any stage</li>
+        <li>Per-voter GPS / geolocation</li>
+        <li>Any payment or payout data</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- WORKFLOW -->
+  <div class="section-head"><h2>Workflow Overview</h2><div class="rule"></div></div>
+  <div class="workflow">
+    <div class="wf-step"><div class="wf-num">01</div><div class="wf-title">Check-In</div><div class="wf-desc">Supervisor checks in at the polling unit</div></div>
+    <div class="wf-step"><div class="wf-num">02</div><div class="wf-title">Team Brief</div><div class="wf-desc">Attendance &amp; daily briefing</div></div>
+    <div class="wf-step"><div class="wf-num">03</div><div class="wf-title">Voter Engagement</div><div class="wf-desc">Door-to-door canvass against verified list</div></div>
+    <div class="wf-step"><div class="wf-num">04</div><div class="wf-title">GOTV Reminders</div><div class="wf-desc">Election-day reminders, self-reported status</div></div>
+    <div class="wf-step"><div class="wf-num">05</div><div class="wf-title">Aggregate Reports</div><div class="wf-desc">Roll up to unit, ward, LGA, state, HQ</div></div>
+  </div>
+
+  <!-- SITUATION ROOM -->
+  <div class="section-head"><h2>Central Situation Room — Aggregate View Only</h2><div class="rule"></div></div>
+  <div class="sitroom">
+    <div class="sitroom-head">
+      <h2>National Field Force Overview</h2>
+      <div class="live">Last sync avg. 15 min ago</div>
+    </div>
+    <div class="sit-grid">
+      <div class="sit-card">
+        <h4>Zonal Engagement Rollup</h4>
+        <div class="zone-row"><span class="zone-name">North West</span><div class="zone-bar"><div class="zone-fill" style="width:71%"></div></div><span class="zone-pct">71%</span></div>
+        <div class="zone-row"><span class="zone-name">North East</span><div class="zone-bar"><div class="zone-fill" style="width:58%"></div></div><span class="zone-pct">58%</span></div>
+        <div class="zone-row"><span class="zone-name">North Central</span><div class="zone-bar"><div class="zone-fill" style="width:64%"></div></div><span class="zone-pct">64%</span></div>
+        <div class="zone-row"><span class="zone-name">South West</span><div class="zone-bar"><div class="zone-fill" style="width:77%"></div></div><span class="zone-pct">77%</span></div>
+        <div class="zone-row"><span class="zone-name">South East</span><div class="zone-bar"><div class="zone-fill" style="width:52%"></div></div><span class="zone-pct">52%</span></div>
+        <div class="zone-row"><span class="zone-name">South South</span><div class="zone-bar"><div class="zone-fill" style="width:60%"></div></div><span class="zone-pct">60%</span></div>
+        <div class="sample-tag">Sample data — % of assigned voter list contacted</div>
+      </div>
+      <div class="sit-card">
+        <h4>Field Force Summary</h4>
+        <div class="sit-stat-row"><span>Supervisors deployed</span><b>176,974 (100%)</b></div>
+        <div class="sit-stat-row"><span>Canvassers deployed</span><b>1,769,740 (100%)</b></div>
+        <div class="sit-stat-row"><span>Units reporting today</span><b>148,420 (83.9%)</b></div>
+        <div class="sit-stat-row"><span>Devices online</span><b>137,892 (78.0%)</b></div>
+        <h4 style="margin-top:14px;">Incidents Today</h4>
+        <div class="incident-row"><span class="dot critical"></span>Critical<span class="incident-count">89</span></div>
+        <div class="incident-row"><span class="dot high"></span>High<span class="incident-count">339</span></div>
+        <div class="incident-row"><span class="dot med"></span>Medium<span class="incident-count">1,842</span></div>
+        <div class="incident-row"><span class="dot low"></span>Low<span class="incident-count">4,572</span></div>
+      </div>
+      <div class="sit-card">
+        <h4>Most Active Canvassers — This Week</h4>
+        <div class="leaderboard-row"><span class="rank">1</span><span class="lb-name">Grace Usman</span><span class="lb-metric">142 contacts</span></div>
+        <div class="leaderboard-row"><span class="rank">2</span><span class="lb-name">Samuel Titus</span><span class="lb-metric">137 contacts</span></div>
+        <div class="leaderboard-row"><span class="rank">3</span><span class="lb-name">Ibrahim Musa</span><span class="lb-metric">129 contacts</span></div>
+        <div class="sample-tag">Recognition only — based on contact volume, no payout attached</div>
+        <h4 style="margin-top:14px;">Voter Engagement Progress</h4>
+        <div class="thermo-wrap">
+          <div class="thermo"><div class="thermo-fill" style="width:24.6%"></div></div>
+          <div class="thermo-caption"><span>2,456,831 contacted</span><span>Goal 10,000,000</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RATIO CALC + FACTS -->
+  <div class="section-head"><h2>Staffing Math &amp; Quick Facts</h2><div class="rule"></div></div>
+  <div class="calc-row">
+    <div class="calc-eq">
+      <div class="calc-part"><div class="calc-icon">1</div><div class="calc-label">Supervisor per polling unit</div></div>
+      <div class="calc-sym">+</div>
+      <div class="calc-part"><div class="calc-icon">10</div><div class="calc-label">Canvassers per polling unit</div></div>
+      <div class="calc-sym">=</div>
+      <div class="calc-part"><div class="calc-icon">11</div><div class="calc-label">Field staff per polling unit</div></div>
+      <div class="calc-result num">176,974 × 11 = 1,946,714</div>
+    </div>
+    <div class="facts-grid">
+      <div class="fact"><b class="num">11</b><small>Field staff / polling unit</small></div>
+      <div class="fact"><b class="num">1</b><small>Supervisor / polling unit</small></div>
+      <div class="fact"><b class="num">10</b><small>Canvassers / polling unit</small></div>
+      <div class="fact"><b class="num">3</b><small>Contact target / canvasser</small></div>
+    </div>
+  </div>
+
+  <!-- SECURITY / DEPLOYMENT / STACK -->
+  <div class="section-head"><h2>Security, Deployment &amp; Technology</h2><div class="rule"></div></div>
+  <div class="info-grid">
+    <div class="panel">
+      <h3>Security &amp; Compliance</h3>
+      <ul>
+        <li>End-to-end encryption (AES-256, TLS 1.3)</li>
+        <li>Role-based access control</li>
+        <li>Device certificate authentication</li>
+        <li>Audit logs &amp; monitoring</li>
+        <li>NDPR 2019 compliant</li>
+        <li><b>No biometric or photographic capture of voters</b></li>
+        <li><b>No individual-level voter geolocation</b></li>
+        <li>Data retention policy &amp; secure cloud infrastructure</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Deployment Overview</h3>
+      <ul>
+        <li><b>Total devices:</b> 176,974 tablets</li>
+        <li><b>Distribution:</b> By state → LGA → ward → PU</li>
+        <li><b>Training:</b> Supervisors &amp; canvassers</li>
+        <li><b>Support:</b> 24/7 helpdesk &amp; field support</li>
+        <li><b>Rollout target:</b> Ahead of 16 Jan 2027</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Technology Stack</h3>
+      <ul>
+        <li>Android (Kotlin)</li>
+        <li>SQLite (encrypted)</li>
+        <li>Node.js / Java Spring Boot</li>
+        <li>RESTful APIs</li>
+        <li>React (dashboard)</li>
+        <li>AWS / Azure Cloud</li>
+        <li>Power BI / Metabase (reporting)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="claim">Next Level Nigeria. Field Ops — Without Tracking Voters.</div>
+    <div class="tags">#NextLevelNigeria #WeWinTogether #10MillionVotes · VictoryLink v2.0 · Compliant Demo</div>
+  </div>
+
+</div>

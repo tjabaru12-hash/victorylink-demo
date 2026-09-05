@@ -1,0 +1,657 @@
+<title>VictoryLink Prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --paper:#F5F6F0; --ink:#15201A; --ink-soft:#48584C; --ink-faint:#8695897F;
+    --line:#D9DFD2; --green-700:#146334; --green-600:#1B7A40; --green-100:#E1F0E4;
+    --red-600:#A23B34; --amber-600:#A8791E;
+    --shadow:0 1px 2px rgba(11,61,34,0.06), 0 10px 28px -14px rgba(11,61,34,0.22);
+    --font-display:'Archivo','Arial Narrow',sans-serif;
+    --font-body:'Public Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0D1712; --ink:#EAEFE7; --ink-soft:#AFC0B2; --ink-faint:#748578;
+      --line:#26362B; --green-700:#63C889; --green-600:#49BC77; --green-100:#1B3625;
+      --red-600:#E08079; --amber-600:#E0AC57;
+      --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 28px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0D1712; --ink:#EAEFE7; --ink-soft:#AFC0B2; --ink-faint:#748578;
+    --line:#26362B; --green-700:#63C889; --green-600:#49BC77; --green-100:#1B3625;
+    --red-600:#E08079; --amber-600:#E0AC57;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 28px -14px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--font-body);}
+  button, .navbtn, .action-tile, .tabbtn, .gotv-btn, .filter-chip, .voter-row, .menu-item,
+  .toggle, .backbtn, .reset-btn, .link-btn, .gotv-row [data-action], [data-nav]{
+    touch-action:manipulation; -webkit-user-select:none; user-select:none;
+  }
+  input, textarea{ touch-action:manipulation; }
+  .page{max-width:920px;margin:0 auto;padding:26px 20px 60px;}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+  .top h1{font-family:var(--font-display);font-weight:900;font-size:22px;margin:0;letter-spacing:-0.01em;}
+  .top h1 em{font-style:normal;color:var(--green-600);}
+  .top p{font-size:13px;color:var(--ink-soft);margin:6px 0 0;max-width:52ch;}
+  .reset-btn{
+    font-family:var(--font-mono);font-size:11px;font-weight:600;background:transparent;
+    border:1px solid var(--line);color:var(--ink-soft);padding:11px 14px;min-height:44px;border-radius:8px;
+    cursor:pointer;white-space:nowrap;touch-action:manipulation;
+  }
+  .reset-btn:hover{border-color:var(--green-600);color:var(--green-600);}
+  .stage{display:flex;justify-content:center;}
+
+  /* ---- device frame ---- */
+  .device{
+    width:100%;max-width:380px;background:#0B140F;border-radius:34px;padding:12px;box-shadow:var(--shadow);
+    position:relative;
+  }
+  .device::before{
+    content:"";position:absolute;top:22px;left:50%;transform:translateX(-50%);width:70px;height:5px;
+    background:#1E2A21;border-radius:4px;
+  }
+  .screen{
+    background:#FFFFFF;color:#15201A;border-radius:24px;overflow:hidden;min-height:680px;
+    display:flex;flex-direction:column;position:relative;font-size:14px;
+  }
+  .statusbar{display:flex;justify-content:space-between;padding:14px 20px 4px;font-family:var(--font-mono);
+    font-size:11px;color:#48584C;}
+  .content{flex:1;display:flex;flex-direction:column;min-height:0;}
+  .navbar{
+    display:flex;justify-content:space-around;border-top:1px solid #E3E8DE;
+    padding:9px 4px max(12px, env(safe-area-inset-bottom));
+    background:#FBFCF9;
+  }
+  .navbtn{background:none;border:none;font-family:var(--font-body);font-size:10px;
+    color:#7C8C7F;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    cursor:pointer;flex:1;min-height:44px;padding:6px 2px;}
+  .navbtn .ic{width:18px;height:18px;border-radius:5px;background:#E3E8DE;}
+  .navbtn.active{color:#146334;font-weight:700;}
+  .navbtn.active .ic{background:#1B7A40;}
+
+  /* ---- shared bits inside screen ---- */
+  .scr-head{padding:18px 20px 12px;border-bottom:1px solid #ECF0E7;}
+  .scr-title{font-family:var(--font-display);font-weight:800;font-size:17px;margin:0;}
+  .scr-sub{font-size:11.5px;color:#7C8C7F;margin-top:2px;}
+  .scr-body{padding:16px 20px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+  .backbtn{background:none;border:none;font-size:18px;color:#146334;cursor:pointer;padding:10px 10px 10px 2px;
+    min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;margin-left:-8px;}
+  .row-flex{display:flex;align-items:center;gap:8px;}
+
+  .field{width:100%;padding:13px 14px;border:1px solid #D9DFD2;border-radius:9px;font-size:16px;
+    font-family:var(--font-body);margin-bottom:12px;background:#FBFCF9;color:#15201A;-webkit-user-select:text;user-select:text;}
+  .field:focus{outline:2px solid #1B7A40;outline-offset:1px;}
+  .label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:#7C8C7F;font-weight:700;
+    margin-bottom:5px;display:block;}
+  .btn{width:100%;padding:13px;border-radius:9px;border:none;font-family:var(--font-body);font-weight:700;
+    font-size:14px;cursor:pointer;min-height:46px;}
+  .btn-primary{background:#1B7A40;color:#fff;}
+  .btn-primary:hover{background:#146334;}
+  .btn-primary:disabled{background:#C6D1C3;cursor:not-allowed;}
+  .btn-ghost{background:none;color:#146334;border:1px solid #CBE0D0;}
+  .link-btn{background:none;border:none;color:#146334;font-size:12.5px;font-weight:600;cursor:pointer;
+    text-decoration:underline;text-underline-offset:2px;padding:10px 8px;min-height:44px;display:inline-flex;
+    align-items:center;}
+  .err{color:#A23B34;font-size:12px;margin:-6px 0 12px;}
+
+  .card{background:#F6F8F3;border:1px solid #ECF0E7;border-radius:11px;padding:12px 14px;margin-bottom:10px;}
+  .card-row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+  .stat-box{background:#F6F8F3;border:1px solid #ECF0E7;border-radius:10px;padding:10px 8px;text-align:center;}
+  .stat-box b{display:block;font-family:var(--font-mono);font-size:18px;color:#146334;}
+  .stat-box small{font-size:9.5px;color:#7C8C7F;text-transform:uppercase;letter-spacing:0.04em;}
+  .chip{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:100px;
+    border:1px solid #D9DFD2;color:#48584C;white-space:nowrap;}
+  .chip.green{background:#E1F0E4;color:#146334;border-color:transparent;}
+  .chip.amber{background:#F7EFDC;color:#A8791E;border-color:transparent;}
+  .chip.red{background:#F7E5E2;color:#A23B34;border-color:transparent;}
+  .chip.grey{background:#ECF0E7;color:#7C8C7F;border-color:transparent;}
+  .actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+  .action-tile{background:#F6F8F3;border:1px solid #ECF0E7;border-radius:10px;padding:12px 10px;text-align:left;
+    cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:12px;color:#15201A;}
+  .action-tile:hover{border-color:#1B7A40;}
+  .action-tile small{display:block;font-weight:400;color:#7C8C7F;font-size:10.5px;margin-top:2px;}
+
+  .tabbar{display:flex;gap:6px;margin-bottom:12px;}
+  .tabbtn{flex:1;padding:11px 9px;min-height:44px;border-radius:8px;border:1px solid #D9DFD2;background:#FBFCF9;
+    font-size:12px;font-weight:700;color:#7C8C7F;cursor:pointer;font-family:var(--font-body);}
+  .tabbtn.active{background:#146334;color:#fff;border-color:#146334;}
+
+  .voter-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #ECF0E7;cursor:pointer;}
+  .voter-row:last-child{border-bottom:none;}
+  .avatar{width:30px;height:30px;border-radius:50%;background:#1B7A40;color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:var(--font-mono);}
+  .voter-meta{flex:1;min-width:0;}
+  .voter-name{font-weight:700;font-size:13px;}
+  .voter-sub{font-size:10.5px;color:#7C8C7F;font-family:var(--font-mono);}
+
+  .gotv-row{padding:10px 0;border-bottom:1px solid #ECF0E7;}
+  .gotv-row:last-child{border-bottom:none;}
+  .gotv-btns{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+  .gotv-btn{flex:1;min-width:64px;min-height:42px;padding:8px 4px;border-radius:7px;border:1px solid #D9DFD2;
+    background:#FBFCF9;font-size:10px;font-weight:700;color:#48584C;cursor:pointer;text-align:center;
+    display:flex;align-items:center;justify-content:center;}
+  .gotv-btn.active{background:#146334;color:#fff;border-color:#146334;}
+
+  .overlay{position:absolute;inset:0;background:#FFFFFF;display:flex;flex-direction:column;z-index:5;}
+
+  .thermo{height:10px;border-radius:6px;background:#ECF0E7;overflow:hidden;margin-top:8px;}
+  .thermo-fill{height:100%;background:linear-gradient(90deg,#146334,#49BC77);}
+
+  .bar-list{display:flex;flex-direction:column;gap:6px;}
+  .bar-item{display:flex;align-items:center;gap:8px;font-size:10.5px;}
+  .bar-item .lbl{width:44px;color:#7C8C7F;font-family:var(--font-mono);flex:0 0 auto;}
+  .bar-track{flex:1;height:8px;background:#ECF0E7;border-radius:4px;overflow:hidden;}
+  .bar-fill{height:100%;background:#1B7A40;}
+  .bar-item .val{width:22px;text-align:right;font-family:var(--font-mono);color:#15201A;flex:0 0 auto;}
+
+  .filter-row{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px;padding-bottom:2px;}
+  .filter-chip{flex:0 0 auto;padding:9px 14px;min-height:38px;border-radius:100px;border:1px solid #D9DFD2;
+    background:#FBFCF9;font-size:11px;font-weight:700;color:#7C8C7F;cursor:pointer;display:inline-flex;align-items:center;}
+  .filter-chip.active{background:#146334;color:#fff;border-color:#146334;}
+
+  .menu-item{display:flex;justify-content:space-between;align-items:center;padding:14px 2px;min-height:48px;
+    border-bottom:1px solid #ECF0E7;cursor:pointer;}
+  .menu-item:last-child{border-bottom:none;}
+  .menu-item span{font-weight:700;font-size:13px;}
+  .menu-item .arrow{color:#7C8C7F;}
+  .toggle{width:48px;height:27px;border-radius:100px;background:#D9DFD2;position:relative;cursor:pointer;flex:0 0 auto;}
+  .toggle.on{background:#1B7A40;}
+  .toggle::after{content:"";position:absolute;top:2.5px;left:2.5px;width:22px;height:22px;border-radius:50%;
+    background:#fff;transition:left .15s ease;}
+  .toggle.on::after{left:23.5px;}
+
+  .toast{
+    position:absolute;left:50%;bottom:78px;transform:translateX(-50%);background:#15201A;color:#fff;
+    padding:9px 16px;border-radius:100px;font-size:12px;font-weight:600;box-shadow:0 8px 20px rgba(0,0,0,.3);
+    opacity:0;pointer-events:none;transition:opacity .2s ease, bottom .2s ease;z-index:20;white-space:nowrap;
+  }
+  .toast.show{opacity:1;bottom:88px;}
+
+  .form-add{background:#F6F8F3;border:1px solid #ECF0E7;border-radius:10px;padding:12px;margin-bottom:12px;}
+
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:#D9DFD2;border-radius:3px;}
+</style>
+
+<div class="page">
+  <div class="top">
+    <div>
+      <h1>Victory<em>Link</em> — Interactive Prototype</h1>
+      <p>Click through the field app end to end. All data below is sample data for demo purposes — no real voters, no network calls, no photo or location capture anywhere in this build.</p>
+    </div>
+    <button class="reset-btn" id="resetBtn">↺ Reset demo data</button>
+  </div>
+  <div class="stage">
+    <div class="device">
+      <div class="screen">
+        <div class="statusbar"><span id="clock">9:41</span><span>●●●● <span id="netlabel">Wi-Fi</span></span></div>
+        <div class="content" id="content"></div>
+        <div class="toast" id="toast"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SEED = function(){
+    return {
+      screen: 'login',
+      phone: '', pass: '', loginErr: '',
+      user: { name:'John Adewale', initials:'JA', pu:'PU-01234-A', lga:'Bama LGA', state:'Borno State' },
+      checkedInAt: null,
+      online: true,
+      pending: 0,
+      lastSync: '07:15 AM',
+      voterTab: 'canvass',
+      voterSearch: '',
+      selectedVoterId: null,
+      gotvFilter: 'all',
+      reportFilter: 'all',
+      newIssueTitle: '', newIssueSeverity: 'Medium',
+      voters: [
+        {id:1, pvc:'PVC••••••1234', name:'John Adewale',  phone:'0803 123 4567', canvass:'Supportive', notes:'Strong supporter, will bring family.', canvassAt:'Yesterday 4:12 PM', gotv:'Confirmed'},
+        {id:2, pvc:'PVC••••••2211', name:'Mary Samuel',   phone:'0805 234 1189', canvass:'Supportive', notes:'Needs a ride to PU.', canvassAt:'Yesterday 4:40 PM', gotv:'Needs ride'},
+        {id:3, pvc:'PVC••••••3390', name:'Ibrahim Musa',  phone:'0810 556 2290', canvass:'Undecided',  notes:'Wants to hear more on roads.', canvassAt:'Yesterday 5:02 PM', gotv:null},
+        {id:4, pvc:'PVC••••••4471', name:'Grace Usman',   phone:'0802 771 4432', canvass:'Supportive', notes:'', canvassAt:'Today 8:05 AM', gotv:'Voted'},
+        {id:5, pvc:'PVC••••••5522', name:'Samuel Titus',  phone:'0807 992 1120', canvass:'Not home',   notes:'Try again evening.', canvassAt:'Today 8:20 AM', gotv:null},
+        {id:6, pvc:'PVC••••••6633', name:'Amaka Nwosu',   phone:'0813 445 7789', canvass:null, notes:'', canvassAt:null, gotv:null},
+        {id:7, pvc:'PVC••••••7744', name:'Fatima Bello',  phone:'0816 223 5510', canvass:null, notes:'', canvassAt:null, gotv:null},
+        {id:8, pvc:'PVC••••••8855', name:'Chidi Okafor',  phone:'0704 887 2231', canvass:null, notes:'', canvassAt:null, gotv:null},
+        {id:9, pvc:'PVC••••••9966', name:'Blessing Eze',  phone:'0701 556 9021', canvass:null, notes:'', canvassAt:null, gotv:null},
+        {id:10,pvc:'PVC••••••1077', name:'Yusuf Danladi', phone:'0812 334 8890', canvass:null, notes:'', canvassAt:null, gotv:null},
+        {id:11,pvc:'PVC••••••2188', name:'Ngozi Chukwu',  phone:'0803 667 1123', canvass:null, notes:'', canvassAt:null, gotv:null},
+        {id:12,pvc:'PVC••••••3299', name:'Aliyu Garba',   phone:'0806 998 4456', canvass:null, notes:'', canvassAt:null, gotv:null}
+      ],
+      issues: [
+        {id:1, title:'Late accreditation materials at PU-01198', severity:'High', status:'Open', at:'9:30 AM'},
+        {id:2, title:'Poor network signal near collation point', severity:'Medium', status:'Open', at:'10:10 AM'}
+      ],
+      team: [
+        {name:'Grace Usman', initials:'GU', contacts:9},
+        {name:'Samuel Titus', initials:'ST', contacts:7},
+        {name:'Ibrahim Musa', initials:'IM', contacts:6},
+        {name:'Amaka Nwosu', initials:'AN', contacts:5},
+        {name:'Fatima Bello', initials:'FB', contacts:4},
+        {name:'Chidi Okafor', initials:'CO', contacts:3},
+        {name:'Blessing Eze', initials:'BE', contacts:2}
+      ],
+      engagementHistory: [ ['Mon',18],['Tue',24],['Wed',31],['Thu',22],['Fri',29] ]
+    };
+  };
+
+  var state = SEED();
+  var contentEl = document.getElementById('content');
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
+  }
+
+  function queueSync(){ state.pending += 1; }
+
+  function todayCanvassed(){ return state.voters.filter(function(v){ return v.canvass; }).length; }
+  function supportiveCount(){ return state.voters.filter(function(v){ return v.canvass==='Supportive'; }).length; }
+  function gotvList(){ return state.voters.filter(function(v){ return v.canvass==='Supportive'; }); }
+  function votedCount(){ return gotvList().filter(function(v){ return v.gotv==='Voted'; }).length; }
+
+  /* ---------------- NAV ---------------- */
+  function navHtml(active){
+    if(state.screen==='login') return '';
+    var items = [
+      {key:'dashboard', label:'Home'},
+      {key:'voters', label:'Voters'},
+      {key:'sync', label:'Sync'},
+      {key:'more', label:'More'}
+    ];
+    return '<div class="navbar">' + items.map(function(it){
+      var cls = 'navbtn' + (active===it.key ? ' active':'');
+      return '<button class="'+cls+'" data-nav="'+it.key+'"><span class="ic"></span>'+it.label+'</button>';
+    }).join('') + '</div>';
+  }
+
+  /* ---------------- SCREENS ---------------- */
+  function renderLogin(){
+    return ''
+      +'<div class="scr-body" style="display:flex;flex-direction:column;justify-content:center;min-height:100%;">'
+      +'  <div style="text-align:center;margin-bottom:22px;">'
+      +'    <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(160deg,#1B7A40,#0B3D22);margin:0 auto 10px;"></div>'
+      +'    <div style="font-family:var(--font-display);font-weight:900;font-size:19px;">Victory<span style="color:#1B7A40;">Link</span></div>'
+      +'    <div style="font-size:11px;color:#7C8C7F;margin-top:2px;">Secure. Reliable. Connected.</div>'
+      +'  </div>'
+      +'  <label class="label">Phone number</label>'
+      +'  <input class="field" id="loginPhone" placeholder="0803 123 4567" value="'+esc(state.phone)+'">'
+      +'  <label class="label">Password</label>'
+      +'  <input class="field" id="loginPass" type="password" placeholder="••••••••" value="'+esc(state.pass)+'">'
+      + (state.loginErr ? '<div class="err">'+esc(state.loginErr)+'</div>' : '')
+      +'  <button class="btn btn-primary" data-action="login">Log In</button>'
+      +'  <div style="text-align:center;margin-top:14px;">'
+      +'    <button class="link-btn" data-action="loginOffline">Use offline mode</button>'
+      +'  </div>'
+      +'  <div class="card" style="margin-top:18px;">'
+      +'    <div style="font-size:11.5px;color:#48584C;">📶 <b>Offline mode</b> — data will sync when you\'re back online. Your work is always saved on this device first.</div>'
+      +'  </div>'
+      +'</div>';
+  }
+
+  function renderDashboard(){
+    var checked = state.checkedInAt;
+    return ''
+      +'<div class="scr-head"><h2 class="scr-title">'+esc(state.user.pu)+'</h2><div class="scr-sub">'+esc(state.user.lga)+', '+esc(state.user.state)+'</div></div>'
+      +'<div class="scr-body">'
+      +'  <div class="card">'
+      +'    <div class="card-row">'
+      +'      <span class="chip '+(checked?'green':'amber')+'">'+(checked ? '✓ Checked in — '+esc(checked) : '● Not checked in')+'</span>'
+      + (checked ? '' : '<button class="btn btn-primary" style="width:auto;padding:8px 14px;" data-action="checkin">Check In</button>')
+      +'    </div>'
+      +'  </div>'
+      +'  <div class="label" style="margin-top:14px;">Today\'s overview</div>'
+      +'  <div class="stat-strip">'
+      +'    <div class="stat-box"><b>'+todayCanvassed()+'</b><small>Canvassed</small></div>'
+      +'    <div class="stat-box"><b>'+supportiveCount()+'</b><small>Supportive</small></div>'
+      +'    <div class="stat-box"><b>'+state.issues.length+'</b><small>Issues</small></div>'
+      +'  </div>'
+      +'  <div class="label" style="margin-top:14px;">Quick actions</div>'
+      +'  <div class="actions-grid">'
+      +'    <button class="action-tile" data-nav="voters" data-voter-tab="canvass">Canvass a voter<small>Search verified list</small></button>'
+      +'    <button class="action-tile" data-nav="voters" data-voter-tab="gotv">GOTV tracker<small>Election-day follow-up</small></button>'
+      +'    <button class="action-tile" data-nav="more" data-more-screen="team">My team<small>'+state.team.length+' canvassers</small></button>'
+      +'    <button class="action-tile" data-nav="sync">Sync status<small>'+state.pending+' pending</small></button>'
+      +'  </div>'
+      +'</div>';
+  }
+
+  function voterRow(v){
+    var chipCls = v.canvass==='Supportive'?'green':v.canvass==='Undecided'?'amber':v.canvass==='Not home'?'grey':v.canvass==='Opposed'?'red':'grey';
+    var chipLabel = v.canvass || 'Not yet';
+    return '<div class="voter-row" data-action="openVoter" data-id="'+v.id+'">'
+      +'<div class="avatar">'+esc(v.name.split(' ').map(function(p){return p[0];}).join('').slice(0,2))+'</div>'
+      +'<div class="voter-meta"><div class="voter-name">'+esc(v.name)+'</div><div class="voter-sub">'+esc(v.pvc)+'</div></div>'
+      +'<span class="chip '+chipCls+'">'+esc(chipLabel)+'</span>'
+      +'</div>';
+  }
+
+  function renderVotersList(){
+    var q = state.voterSearch.trim().toLowerCase();
+    var list = state.voters.filter(function(v){
+      if(!q) return true;
+      return v.name.toLowerCase().indexOf(q)>-1 || v.pvc.toLowerCase().indexOf(q)>-1;
+    });
+    var listHtml = list.length
+      ? list.map(voterRow).join('')
+      : '<div style="text-align:center;color:#A23B34;font-size:12.5px;padding:20px 0;">No verified voter found matching "'+esc(state.voterSearch)+'". Registration is blocked unless a voter exists on the verified list.</div>';
+    return ''
+      +'<div class="scr-head"><h2 class="scr-title">Voter Engagement</h2><div class="scr-sub">Verified voter list for '+esc(state.user.pu)+'</div></div>'
+      +'<div class="scr-body">'
+      +'  <div class="tabbar">'
+      +'    <button class="tabbtn '+(state.voterTab==='canvass'?'active':'')+'" data-action="voterTab" data-tab="canvass">Canvass</button>'
+      +'    <button class="tabbtn '+(state.voterTab==='gotv'?'active':'')+'" data-action="voterTab" data-tab="gotv">GOTV Tracker</button>'
+      +'  </div>'
+      + (state.voterTab==='canvass'
+        ? '<input class="field" id="voterSearch" placeholder="Search by name or Voter ID (PVC)" value="'+esc(state.voterSearch)+'">' + listHtml
+        : renderGotv())
+      +'</div>';
+  }
+
+  function renderGotv(){
+    var list = gotvList();
+    var filtered = list.filter(function(v){
+      if(state.gotvFilter==='all') return true;
+      if(state.gotvFilter==='pending') return !v.gotv || v.gotv==='Needs ride';
+      return v.gotv===state.gotvFilter;
+    });
+    var target = 3;
+    return ''
+      +'<div class="card" style="margin-bottom:12px;">'
+      +'  <div style="font-size:11.5px;color:#48584C;"><b>'+votedCount()+' of '+target+'</b> target voters confirmed voted — self-reported by the voter. No photo or location is captured on election day.</div>'
+      +'  <div class="thermo"><div class="thermo-fill" style="width:'+Math.min(100, Math.round(votedCount()/target*100))+'%"></div></div>'
+      +'</div>'
+      + (list.length===0
+        ? '<div style="text-align:center;color:#7C8C7F;font-size:12px;padding:12px 0;">No supportive voters canvassed yet. Mark someone Supportive in the Canvass tab to add them here.</div>'
+        : filtered.map(function(v){
+            var opts = ['Reminded','Confirmed','Voted','Needs ride'];
+            return '<div class="gotv-row"><div class="voter-name">'+esc(v.name)+'</div><div class="voter-sub">'+esc(v.pvc)+'</div>'
+              +'<div class="gotv-btns">'+opts.map(function(o){
+                return '<button class="gotv-btn '+(v.gotv===o?'active':'')+'" data-action="setGotv" data-id="'+v.id+'" data-status="'+o+'">'+o+'</button>';
+              }).join('')+'</div></div>';
+          }).join(''))
+      ;
+  }
+
+  function renderVoterDetail(v){
+    var opts = ['Supportive','Undecided','Not home','Opposed'];
+    return ''
+      +'<div class="overlay">'
+      +'<div class="scr-head" style="display:flex;align-items:center;gap:4px;">'
+      +'<button class="backbtn" data-action="closeVoter">←</button>'
+      +'<div><h2 class="scr-title" style="font-size:15px;">'+esc(v.name)+'</h2><div class="scr-sub">'+esc(v.pvc)+' · Verified ✓</div></div>'
+      +'</div>'
+      +'<div class="scr-body">'
+      +'  <label class="label">Phone (auto-filled)</label>'
+      +'  <div class="field" style="background:#F6F8F3;">'+esc(v.phone)+'</div>'
+      +'  <label class="label">Canvass result</label>'
+      +'  <div class="actions-grid" style="grid-template-columns:1fr 1fr;">'
+      + opts.map(function(o){
+          return '<button class="tabbtn '+(v.canvass===o?'active':'')+'" style="margin-bottom:6px;" data-action="setCanvass" data-id="'+v.id+'" data-status="'+o+'">'+o+'</button>';
+        }).join('')
+      +'  </div>'
+      +'  <label class="label" style="margin-top:10px;">Notes</label>'
+      +'  <textarea class="field" id="voterNotes" rows="3" placeholder="Optional notes for the team...">'+esc(v.notes)+'</textarea>'
+      + (v.canvassAt ? '<div style="font-size:10.5px;color:#7C8C7F;margin:-6px 0 10px;">Last updated '+esc(v.canvassAt)+'</div>' : '')
+      +'  <button class="btn btn-primary" data-action="saveVoter" data-id="'+v.id+'">Save Canvass</button>'
+      +'</div>'
+      +'</div>';
+  }
+
+  function renderTeam(){
+    var expanded = state._teamExpanded;
+    var list = expanded ? state.team : state.team.slice(0,3);
+    return ''
+      +'<div class="scr-head" style="display:flex;align-items:center;gap:4px;">'
+      +'<button class="backbtn" data-action="backToMore">←</button>'
+      +'<div><h2 class="scr-title" style="font-size:16px;">My Team</h2><div class="scr-sub">'+esc(state.user.pu)+'</div></div>'
+      +'</div>'
+      +'<div class="scr-body">'
+      +'  <div class="label">Supervisor</div>'
+      +'  <div class="voter-row" style="cursor:default;"><div class="avatar" style="background:#A8791E;">BA</div><div class="voter-meta"><div class="voter-name">Bello Ahmed</div><div class="voter-sub">0805 001 2233</div></div></div>'
+      +'  <div class="label" style="margin-top:14px;">Canvassers ('+state.team.length+')</div>'
+      + list.map(function(t){
+          return '<div class="voter-row" style="cursor:default;"><div class="avatar">'+esc(t.initials)+'</div><div class="voter-meta"><div class="voter-name">'+esc(t.name)+'</div></div><span class="chip grey">'+t.contacts+' contacts</span></div>';
+        }).join('')
+      + (expanded ? '' : '<button class="link-btn" style="margin-top:8px;" data-action="expandTeam">View all '+state.team.length+' →</button>')
+      +'</div>';
+  }
+
+  function renderReports(){
+    var maxV = Math.max.apply(null, state.engagementHistory.map(function(d){return d[1];}));
+    var filters = ['all','Supportive','Undecided','Not home','Opposed'];
+    var list = state.voters.filter(function(v){
+      if(state.reportFilter==='all') return true;
+      if(state.reportFilter==='not-yet') return !v.canvass;
+      return v.canvass===state.reportFilter;
+    });
+    return ''
+      +'<div class="scr-head" style="display:flex;align-items:center;gap:4px;">'
+      +'<button class="backbtn" data-action="backToMore">←</button>'
+      +'<div><h2 class="scr-title" style="font-size:16px;">Reports</h2><div class="scr-sub">Daily summary &amp; history</div></div>'
+      +'</div>'
+      +'<div class="scr-body">'
+      +'  <div class="label">Daily summary</div>'
+      +'  <div class="stat-strip">'
+      +'    <div class="stat-box"><b>'+todayCanvassed()+'</b><small>Canvassed</small></div>'
+      +'    <div class="stat-box"><b>'+supportiveCount()+'</b><small>Supportive</small></div>'
+      +'    <div class="stat-box"><b>'+state.issues.length+'</b><small>Issues</small></div>'
+      +'  </div>'
+      +'  <div class="label" style="margin-top:14px;">Voter engagement — last 5 days</div>'
+      +'  <div class="bar-list">'
+      + state.engagementHistory.map(function(d){
+          return '<div class="bar-item"><span class="lbl">'+d[0]+'</span><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(d[1]/maxV*100)+'%"></div></div><span class="val">'+d[1]+'</span></div>';
+        }).join('')
+      +'  </div>'
+      +'  <div class="label" style="margin-top:16px;">Canvass report</div>'
+      +'  <div class="filter-row">'
+      + filters.map(function(f){
+          var val = f==='all'?'all':f;
+          return '<button class="filter-chip '+(state.reportFilter===val?'active':'')+'" data-action="reportFilter" data-f="'+val+'">'+(f==='all'?'All':f)+'</button>';
+        }).join('')
+      +'  </div>'
+      + (list.length ? list.map(voterRow).join('') : '<div style="text-align:center;color:#7C8C7F;font-size:12px;padding:10px 0;">No voters match this filter.</div>')
+      +'  <div class="label" style="margin-top:16px;">Issues &amp; incidents</div>'
+      + state.issues.map(function(i){
+          var sevCls = i.severity==='Critical'||i.severity==='High' ? 'red' : i.severity==='Medium' ? 'amber' : 'grey';
+          return '<div class="card"><div class="card-row"><div><div style="font-weight:700;font-size:12.5px;">'+esc(i.title)+'</div><div class="voter-sub">'+esc(i.at)+' · '+esc(i.status)+'</div></div><span class="chip '+sevCls+'">'+esc(i.severity)+'</span></div></div>';
+        }).join('')
+      +'  <div class="form-add">'
+      +'    <label class="label">Report an issue</label>'
+      +'    <input class="field" id="issueTitle" placeholder="Describe the issue..." value="'+esc(state.newIssueTitle)+'">'
+      +'    <div class="row-flex" style="gap:6px;">'
+      + ['Low','Medium','High','Critical'].map(function(s){
+          return '<button class="filter-chip '+(state.newIssueSeverity===s?'active':'')+'" data-action="setSeverity" data-s="'+s+'" style="flex:1;">'+s+'</button>';
+        }).join('')
+      +'    </div>'
+      +'    <button class="btn btn-primary" style="margin-top:10px;" data-action="addIssue">Submit Issue</button>'
+      +'  </div>'
+      +'  <div class="label" style="margin-top:14px;">Sync status</div>'
+      +'  <div class="card card-row"><span>Last sync: '+esc(state.lastSync)+' · '+state.pending+' pending</span><button class="btn btn-ghost" style="width:auto;padding:7px 12px;" data-nav="sync">Open</button></div>'
+      +'</div>';
+  }
+
+  function renderSync(){
+    return ''
+      +'<div class="scr-head"><h2 class="scr-title">Sync Status</h2><div class="scr-sub">Offline-first — nothing is lost</div></div>'
+      +'<div class="scr-body">'
+      +'  <div class="card card-row">'
+      +'    <span>Network: <b>'+(state.online?'Online':'Offline')+'</b></span>'
+      +'    <div class="toggle '+(state.online?'on':'')+'" data-action="toggleOnline"></div>'
+      +'  </div>'
+      +'  <div class="stat-strip">'
+      +'    <div class="stat-box"><b>'+state.pending+'</b><small>Pending records</small></div>'
+      +'    <div class="stat-box"><b style="font-size:13px;">'+esc(state.lastSync)+'</b><small>Last sync</small></div>'
+      +'  </div>'
+      + (state.pending===0
+        ? '<button class="btn btn-ghost" disabled>✓ All synced</button>'
+        : '<button class="btn btn-primary" '+(state.online?'':'disabled')+' data-action="syncNow">Sync '+state.pending+' record'+(state.pending===1?'':'s')+' now</button>')
+      + (!state.online ? '<div style="font-size:11px;color:#A8791E;margin-top:8px;text-align:center;">No connectivity — records will sync automatically once you\'re back online.</div>' : '')
+      +'  <div class="card" style="margin-top:16px;"><div style="font-size:11.5px;color:#48584C;">Every save on this device is written locally first (encrypted SQLite), then queued here for sync. Turning the network off above simulates working in a low-connectivity polling unit — nothing you do stops working.</div></div>'
+      +'</div>';
+  }
+
+  function renderMore(){
+    if(state.moreScreen==='team') return renderTeam();
+    if(state.moreScreen==='reports') return renderReports();
+    return ''
+      +'<div class="scr-head"><h2 class="scr-title">More</h2><div class="scr-sub">'+esc(state.user.name)+' · Canvasser</div></div>'
+      +'<div class="scr-body">'
+      +'  <div class="menu-item" data-action="openMore" data-m="team"><span>My Team</span><span class="arrow">›</span></div>'
+      +'  <div class="menu-item" data-action="openMore" data-m="reports"><span>Reports</span><span class="arrow">›</span></div>'
+      +'  <div class="menu-item"><span>App version</span><span class="voter-sub">v2.0 (demo)</span></div>'
+      +'  <div class="menu-item" data-action="logout"><span style="color:#A23B34;">Log Out</span><span class="arrow">›</span></div>'
+      +'</div>';
+  }
+
+  /* ---------------- ROUTER ---------------- */
+  function render(){
+    var html, active = state.screen;
+    if(state.screen==='login') html = renderLogin();
+    else if(state.screen==='dashboard') html = renderDashboard();
+    else if(state.screen==='voters') {
+      html = renderVotersList();
+      var v = state.voters.find(function(x){ return x.id===state.selectedVoterId; });
+      if(v) html += renderVoterDetail(v);
+    }
+    else if(state.screen==='sync') html = renderSync();
+    else if(state.screen==='more') html = renderMore();
+    else html = renderDashboard();
+
+    contentEl.innerHTML = html + navHtml(active);
+
+    var phoneEl = document.getElementById('voterSearch');
+    if(phoneEl) phoneEl.focus({preventScroll:true});
+    tickClock();
+  }
+
+  /* ---------------- ACTIONS ---------------- */
+  function checkIn(){
+    var now = new Date();
+    var h = now.getHours()%12 || 12, m = ('0'+now.getMinutes()).slice(-2), ap = now.getHours()>=12?'PM':'AM';
+    state.checkedInAt = h+':'+m+' '+ap;
+    toast('Checked in for '+state.user.pu);
+    render();
+  }
+
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-action],[data-nav]');
+    if(!t) return;
+
+    if(t.dataset.nav){
+      state.screen = t.dataset.nav;
+      if(t.dataset.voterTab) state.voterTab = t.dataset.voterTab;
+      if(t.dataset.moreScreen) state.moreScreen = t.dataset.moreScreen;
+      if(t.dataset.nav==='more' && !t.dataset.moreScreen) state.moreScreen = null;
+      render();
+      return;
+    }
+
+    var a = t.dataset.action;
+    if(a==='login'){
+      var phoneVal = document.getElementById('loginPhone').value.trim();
+      var passVal = document.getElementById('loginPass').value.trim();
+      if(!phoneVal || !passVal){ state.loginErr = 'Enter your phone number and password to continue.'; render(); return; }
+      state.phone = phoneVal; state.pass = passVal; state.loginErr='';
+      state.screen = 'dashboard';
+      toast('Welcome back, '+state.user.name.split(' ')[0]+'.');
+      render();
+    } else if(a==='loginOffline'){
+      state.screen='dashboard'; state.online=false;
+      toast('Signed in offline using cached credentials.');
+      render();
+    } else if(a==='checkin'){ checkIn(); }
+    else if(a==='voterTab'){ state.voterTab = t.dataset.tab; render(); }
+    else if(a==='openVoter'){ state.selectedVoterId = Number(t.dataset.id); render(); }
+    else if(a==='closeVoter'){ state.selectedVoterId = null; render(); }
+    else if(a==='setCanvass'){
+      var v1 = state.voters.find(function(x){ return x.id===Number(t.dataset.id); });
+      if(v1) v1.canvass = t.dataset.status;
+      render();
+    } else if(a==='saveVoter'){
+      var v2 = state.voters.find(function(x){ return x.id===Number(t.dataset.id); });
+      if(v2){
+        var notesEl = document.getElementById('voterNotes');
+        if(notesEl) v2.notes = notesEl.value;
+        v2.canvassAt = 'Just now';
+        queueSync();
+        toast('Canvass saved'+(state.online?' — syncing…':' — queued offline.'));
+      }
+      state.selectedVoterId = null;
+      render();
+    } else if(a==='setGotv'){
+      var v3 = state.voters.find(function(x){ return x.id===Number(t.dataset.id); });
+      if(v3) v3.gotv = t.dataset.status;
+      queueSync();
+      render();
+    } else if(a==='expandTeam'){ state._teamExpanded = true; render(); }
+    else if(a==='backToMore'){ state.moreScreen = null; render(); }
+    else if(a==='openMore'){ state.moreScreen = t.dataset.m; render(); }
+    else if(a==='logout'){
+      state.screen='login'; state.phone=''; state.pass=''; state.checkedInAt=null; state.moreScreen=null;
+      toast('Logged out.');
+      render();
+    } else if(a==='toggleOnline'){
+      state.online = !state.online;
+      toast(state.online ? 'Back online.' : 'Offline — work keeps saving locally.');
+      render();
+    } else if(a==='syncNow'){
+      state.pending = 0;
+      var now2 = new Date();
+      var h2 = now2.getHours()%12||12, m2=('0'+now2.getMinutes()).slice(-2), ap2=now2.getHours()>=12?'PM':'AM';
+      state.lastSync = h2+':'+m2+' '+ap2;
+      toast('Synced successfully.');
+      render();
+    } else if(a==='reportFilter'){ state.reportFilter = t.dataset.f; render(); }
+    else if(a==='setSeverity'){ state.newIssueSeverity = t.dataset.s; render(); }
+    else if(a==='addIssue'){
+      var titleEl = document.getElementById('issueTitle');
+      var title = titleEl ? titleEl.value.trim() : '';
+      if(!title){ toast('Enter a description first.'); return; }
+      state.issues.unshift({id: Date.now(), title: title, severity: state.newIssueSeverity, status:'Open', at:'Just now'});
+      state.newIssueTitle=''; queueSync();
+      toast('Issue reported.');
+      render();
+    }
+  });
+
+  document.addEventListener('input', function(e){
+    if(e.target.id==='voterSearch'){ state.voterSearch = e.target.value; render(); }
+    if(e.target.id==='issueTitle'){ state.newIssueTitle = e.target.value; }
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    state = SEED();
+    toast('Demo data reset.');
+    render();
+  });
+
+  function tickClock(){
+    var now = new Date();
+    var h = now.getHours()%12 || 12, m = ('0'+now.getMinutes()).slice(-2);
+    document.getElementById('clock').textContent = h+':'+m;
+    document.getElementById('netlabel').textContent = state.online ? 'Wi-Fi' : 'Offline';
+  }
+  tickClock();
+  setInterval(tickClock, 15000);
+
+  render();
+})();
+</script>
